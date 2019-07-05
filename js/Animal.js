@@ -28,8 +28,8 @@ class Animal {
         this.foodInventory = 0
         this.canEat = null;
 
-        this.hungerCoefficient = 0.2//Math.random()*0.2+0.1
-        this.hungerDieCoefficient = 0.2//Math.random()*0.2+0.1
+        this.hungerCoefficient = Math.random()*0.05+0.1
+        this.hungerDieCoefficient = Math.random()*0.05+0.1
 
         this.neuralNetwork = new NeuralNetwork(species.NNshape);
     }
