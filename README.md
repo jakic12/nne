@@ -19,14 +19,14 @@ If two animals with the same score touch, a friendly encounter happens -- dont k
 
 # Neural network part
 The neural network inputs are:
-closest predator distance
-predator direction
-closest friend distance
-friend direction
-closest food distance
-food direction
-hunger
-reproductive urge
+closest predator distance, 
+predator direction, 
+closest friend distance, 
+friend direction, 
+closest food distance, 
+food direction, 
+hunger, 
+reproductive urge, 
 ammount of food
 
 Outputs:
