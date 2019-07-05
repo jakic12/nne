@@ -42,6 +42,14 @@ function mainLoop(){
             animal.foodInventory += animal.canEat.foodInventory + 1;
         }
 
+        if(animal.canMate){
+            let offsprings = animal.mate(animal.canMate);
+            if(offsprings instanceof Array)
+                animals = [...animals, ...offsprings];
+            else
+                animals.push(offsprings);
+        }
+
         if(animal.x > canvas.width - animal.size){
             animal.x = canvas.width - animal.size;
         }

@@ -7,7 +7,7 @@ class Animal {
      * @param {number} y 
      * @param {Species} species 
      */
-    constructor(x, y, species){
+    constructor(x, y, species, neuralNet = null){
         this.species = species
         this.x = x
         this.y = y
@@ -27,11 +27,15 @@ class Animal {
         this.reproductiveUrge = 0
         this.foodInventory = 0
         this.canEat = null;
+        this.canMate = null;
 
         this.hungerCoefficient = Math.random()*0.05+0.1
         this.hungerDieCoefficient = Math.random()*0.05+0.1
 
-        this.neuralNetwork = new NeuralNetwork(species.NNshape);
+        if(neuralNet)
+            this.neuralNetwork = neuralNet
+        else
+            this.neuralNetwork = new NeuralNetwork(species.NNshape);
     }
 
     calculateMovement(animals){
@@ -39,7 +43,9 @@ class Animal {
 
         let params = this.getInputParameters(animals);
 
-        this.canEat = this.calculateCanEat(params); // put here for optimisation reasons
+        // put here for optimisation reasons
+        this.canEat = this.calculateCanEat(params); 
+        this.canMate = this.calculateCanMate(params);
 
         let acceptParams = [
             "closest_predator_distance",
@@ -48,6 +54,8 @@ class Animal {
             "friend_direction",
             "closest_food_distance",
             "food_direction",
+            "closest_lover_distance",
+            "lover_direction",
             "hunger",
             "reproductiveUrge",
             "ammount_of_food"
@@ -82,12 +90,12 @@ class Animal {
             this.hunger = 0;
         }else if(this.hunger >= 100){
             this.health -= this.hungerDieCoefficient;
-            console.log("animal is starving");
         }else{
             this.hunger += this.hungerCoefficient;
         }
 
-        this.reproductiveUrge += 0.2;
+        if(this.reproductiveUrge < 100)
+            this.reproductiveUrge += 0.2;
     }
 
     getInputParameters(animals){
@@ -102,6 +110,9 @@ class Animal {
             closest_food_distance:Infinity,
             food_direction:NaN,
             food:null,
+            closest_lover_distance:Infinity,
+            lover_direction:NaN,
+            lover:null,
             hunger:this.hunger,
             reproductiveUrge:this.reproductiveUrge,
             ammount_of_food:this.foodInventory
@@ -123,6 +134,13 @@ class Animal {
                     params.closest_food_distance = distance;
                     params.food_direction = direction;
                     params.food = animal;
+                }
+            }else if(animal.species === this.species){
+                //if the animal is a potential lover
+                if(params.closest_lover_distance > distance){
+                    params.closest_lover_distance = distance;
+                    params.lover_direction = direction;
+                    params.lover = animal;
                 }
             }else{
                 //if the animal is a friend
@@ -158,12 +176,38 @@ class Animal {
         ctx.stroke()
 
         ctx.font = "10px Arial";
-        ctx.fillText(`h:${parseInt(this.health)} f:${parseInt(this.foodInventory)} hu:${parseInt(this.hunger)}`, this.x, this.y - this.size - 50);
+        ctx.fillText(`h:${parseInt(this.health)} f:${parseInt(this.foodInventory)} hu:${parseInt(this.hunger)} ru ${parseInt(this.reproductiveUrge)}`, this.x, this.y - this.size - 50);
     }
 
     calculateCanEat(params){
         if(params.closest_food_distance < this.size)
             return params.food;
+    }
+
+    calculateCanMate(params){
+        if(params.closest_lover_distance < this.size && this.reproductiveUrge >= 100 && params.lover.reproductiveUrge){
+            return params.lover;
+        }
+    }
+
+    mate(animal){
+        this.reproductiveUrge = 0;
+        animal.reproductiveUrge = 0;
+        
+        let offsprings = [];
+        for(let i = 0; i < this.species.offspringCount; i++){
+    
+            let offspring = new Animal(
+                animal.x,
+                animal.y,
+                animal.species,
+                this.neuralNetwork.crossOver(animal.neuralNetwork)
+            );
+            offspring.hungerCoefficient = (Math.random() >= 0.5)? this.hungerCoefficient : animal.hungerCoefficient;
+            offspring.hungerDieCoefficient = (Math.random() >= 0.5)? this.hungerDieCoefficient : animal.hungerDieCoefficient;
+            offsprings.push(offspring);
+        }
+        return offsprings;
     }
 
     variate(value, amount = 0.2){
