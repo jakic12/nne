@@ -3,6 +3,7 @@ class NeuralNetwork{
      * @param {Array<number>} shape 
      */
     constructor(shape, neurons = [], synapses = [], biases = []){
+        this.mutationChance = 0.1;
         this.neurons = neurons
         this.synapses = synapses
         this.biases = biases
@@ -104,7 +105,12 @@ class NeuralNetwork{
             if(v instanceof Array){
                 return this.crossOverArrays(v,b[i])
             }else{
-                if(Math.random() >= 0.5){
+                let rn = Math.random();
+                if( rn >= 0.5-this.mutationChance/2){
+                    if(rn >= 1-this.mutationChance){
+                        return Math.random()*2-1;
+                    }
+                    
                     return b[i];
                 }else{
                     return v;
