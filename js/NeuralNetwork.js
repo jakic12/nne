@@ -2,21 +2,26 @@ class NeuralNetwork{
     /**
      * @param {Array<number>} shape 
      */
-    constructor(shape){
-        this.neurons = []
-        this.synapses = []
-        this.biases = []
+    constructor(shape, neurons = [], synapses = [], biases = []){
+        this.neurons = neurons
+        this.synapses = synapses
+        this.biases = biases
         this.shape = shape;
-        for (let i = 0; i < shape.length; i++) {
-            this.neurons[i] = Array.from({length: shape[i]}, () => 0)
-            if(i != 0)
-                this.biases[i] = Array.from({length: shape[i]}, () => Math.random() * 2-1)
-            if(i+1 < shape.length){
-                this.synapses[i] = []
-                for (let j = 0; j < shape[i+1]; j++) {
-                    this.synapses[i][j] = Array.from({length: shape[i]}, () => Math.random() * 2-1)
-                }
-            }  
+        if(synapses.length == 0 && biases.length == 0){
+            for (let i = 0; i < shape.length; i++) {
+                this.neurons[i] = Array.from({length: shape[i]}, () => 0)
+                if(i != 0)
+                    this.biases[i] = Array.from({length: shape[i]}, () => Math.random() * 2-1)
+                if(i+1 < shape.length){
+                    this.synapses[i] = []
+                    for (let j = 0; j < shape[i+1]; j++) {
+                        this.synapses[i][j] = Array.from({length: shape[i]}, () => Math.random() * 2-1)
+                    }
+                }  
+            }
+        }else{
+            for (let i = 0; i < shape.length; i++)
+                this.neurons[i] = Array.from({length: shape[i]}, () => 0)
         }
 
         //console.log(this.neurons, this.synapses, this.biases)
@@ -76,6 +81,37 @@ class NeuralNetwork{
                 return fn(v)
             }
         })
+    }
+
+    crossOver(neuralNet){
+        let newSynapses = this.crossOverArrays(this.synapses, neuralNet.synapses);
+        let newBiases = this.crossOverArrays(this.biases, neuralNet.biases);
+        return new NeuralNetwork(this.shape, [], newSynapses, newBiases);
+    }
+
+    crossOverArrays(a, b){
+        if(!a instanceof Array || !b instanceof Array)
+            throw "a and or b are not arrays"
+
+        if(a.length != b.length)
+            throw `the arrays have to be equal lengths (${a.length} != ${b.length})`
+
+        
+        a = [...a]
+        b = [...b]
+
+        return a.map((v,i) => {
+            if(v instanceof Array){
+                return this.crossOverArrays(v,b[i])
+            }else{
+                if(Math.random() >= 0.5){
+                    return b[i];
+                }else{
+                    return v;
+                }
+            }
+        })
+
     }
 }
 
