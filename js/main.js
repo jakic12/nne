@@ -6,14 +6,20 @@ var ctx = canvas.getContext("2d");
 
 let animals = [];
 
-let minorSpecies = new Species();
-for (let i = 0; i < 10; i++) {
+/*let minorSpecies = new Species();
+for (let i = 0; i < 100; i++) {
     animals.push(new Animal(Math.random()*canvas.width,Math.random()*canvas.height,minorSpecies));
 }
-
 let dangerSpecies = new Species(2);
-for (let i = 0; i < 10; i++) {
+for (let i = 0; i < 100; i++) {
     animals.push(new Animal(Math.random()*canvas.width,Math.random()*canvas.height,dangerSpecies));
+}*/
+
+for(let foodChainEval = 0; foodChainEval < 5; foodChainEval++){
+    let newspecies = new Species(foodChainEval);
+    for (let i = 0; i < 20; i++) {
+        animals.push(new Animal(Math.random()*canvas.width,Math.random()*canvas.height,newspecies));
+    }
 }
 /*let params = animals[0].getInputParameters(animals);
 ctx.beginPath()
