@@ -213,34 +213,38 @@ class Animal {
     }
 
     calculateCanEat(params){
+        if(!this.food)
         if(params.closest_food_distance < this.size)
             return params.food;
     }
 
     calculateCanMate(params){
+        if(!this.food)
         if(params.closest_lover_distance < this.size && this.reproductiveUrge >= 100 && params.lover.reproductiveUrge){
             return params.lover;
         }
     }
 
     mate(animal){
-        this.reproductiveUrge = 0;
-        animal.reproductiveUrge = 0;
-        
-        let offsprings = [];
-        for(let i = 0; i < this.species.offspringCount; i++){
-    
-            let offspring = new Animal(
-                animal.x,
-                animal.y,
-                animal.species,
-                this.neuralNetwork.crossOver(animal.neuralNetwork)
-            );
-            offspring.hungerCoefficient = (Math.random() >= 0.5)? this.hungerCoefficient : animal.hungerCoefficient;
-            offspring.hungerDieCoefficient = (Math.random() >= 0.5)? this.hungerDieCoefficient : animal.hungerDieCoefficient;
-            offsprings.push(offspring);
+        if(!this.food && !animal.food){
+            this.reproductiveUrge = 0;
+            animal.reproductiveUrge = 0;
+            
+            let offsprings = [];
+            for(let i = 0; i < this.species.offspringCount; i++){
+            
+                let offspring = new Animal(
+                    animal.x,
+                    animal.y,
+                    animal.species,
+                    this.neuralNetwork.crossOver(animal.neuralNetwork)
+                );
+                offspring.hungerCoefficient = (Math.random() >= 0.5)? this.hungerCoefficient : animal.hungerCoefficient;
+                offspring.hungerDieCoefficient = (Math.random() >= 0.5)? this.hungerDieCoefficient : animal.hungerDieCoefficient;
+                offsprings.push(offspring);
+            }
+            return offsprings;
         }
-        return offsprings;
     }
 
     variate(value, amount = 0.2){
