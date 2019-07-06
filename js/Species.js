@@ -4,7 +4,7 @@ class Species{
      * @param {boolean} carnivore can it eat other animals?
      * @param {speed} speed initial speed of the species
      */
-    constructor(fc_eval = 1, NNshape = [11, 10, 3], carnivore = true, speed = 3, color = getRandomColor()){
+    constructor(fc_eval = 1, NNshape = [11, 10, 2], carnivore = true, speed = Math.random()*1+1, color = getRandomColor()){
         this.fc_eval = fc_eval;
         this.carnivore = carnivore;
         this.color = color;

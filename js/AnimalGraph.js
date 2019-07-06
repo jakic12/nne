@@ -53,6 +53,8 @@ class AnimalGraph{
     }
 
     drawAnimalStats(animal){
+        if(!animal)
+            return;
         let statsDiv = document.getElementById("stats");
         while (statsDiv.firstChild) {
             statsDiv.removeChild(statsDiv.firstChild);

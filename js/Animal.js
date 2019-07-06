@@ -37,6 +37,7 @@ class Animal {
         this.hungerCoefficient = Math.random()*0.05+0.3
         this.hungerDieCoefficient = Math.random()*0.05+0.3
         this.lifespanCoefficient = Math.random()*0.02+0.03
+        this.ruCoefficient = Math.random()*0.01 + 0.05
         this.rotCoefficient = 0.1;
 
         if(neuralNet)
@@ -100,39 +101,39 @@ class Animal {
 
         let result = this.neuralNetwork.forward(nnInputs);
         this.forward = result[0];
-        this.strafe = result[1];
-        this.turn = result[2];
+        this.turn = result[1];
+        //this.strafe = result[2];
     }
 
-    updateAnimal(){
+    updateAnimal(speedUpCoefficient = 1){
         if(!this.isFood){
             this.a = this.turn*2*Math.PI;
-            this.x += Math.cos(this.a)*this.forward + Math.cos(this.a+Math.PI/2)*this.strafe
-            this.y += Math.sin(this.a)*this.forward + Math.sin(this.a+Math.PI/2)*this.strafe
+            this.x += (Math.cos(this.a)*this.forward + Math.cos(this.a+Math.PI/2)*this.strafe)*this.speed*speedUpCoefficient
+            this.y += (Math.sin(this.a)*this.forward + Math.sin(this.a+Math.PI/2)*this.strafe)*this.speed*speedUpCoefficient
             if(this.hunger >= 100 && this.foodInventory > 0){
                 this.foodInventory--;
                 this.hunger = 0;
             }else if(this.hunger >= 100){
-                this.health -= this.hungerDieCoefficient;
+                this.health -= this.hungerDieCoefficient*speedUpCoefficient;
                 if(this.health <= 0){
                     this.isFood = true;
                     this.health = 1;
                 }
             }else{
-                this.hunger += this.hungerCoefficient;
+                this.hunger += this.hungerCoefficient*speedUpCoefficient;
             }
 
             if(this.reproductiveUrge < 100)
-                this.reproductiveUrge += 0.1;
+                this.reproductiveUrge += this.ruCoefficient*speedUpCoefficient;
 
             if(this.lifespan < 100)
-                this.lifespan += this.lifespanCoefficient;
+                this.lifespan += this.lifespanCoefficient*speedUpCoefficient;
             else{
                 this.species.animalCount--;
                 this.isFood = true;
             }
         }else{
-            this.rotting += this.rotCoefficient;
+            this.rotting += this.rotCoefficient*speedUpCoefficient;
             if(this.rotting >= 100)
                 this.health = 0;
         }
@@ -289,12 +290,13 @@ class Animal {
      * @param {Object} randomBorder maximum numbers of positions example {x:20, y:10}
      */
     mate(animal, species, randomBorder){
-        if(!species)
-            this.mateCount++;
         
         if(!this.food && !animal.food){
-            this.reproductiveUrge = 0;
-            animal.reproductiveUrge = 0;
+            if(!species){
+                this.mateCount++;
+                this.reproductiveUrge = 0;
+                animal.reproductiveUrge = 0;
+            }
             
             let offsprings = [];
             for(let i = 0; i < (species? species.offspringCount : this.species.offspringCount); i++){

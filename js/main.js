@@ -23,6 +23,13 @@ document.getElementById("showOldestToggle").onclick = () => {
     showOldest = !showOldest
 }
 
+var speedUp = 1;
+let speedUpSlider = document.getElementById("speedUpSlider");
+speedUpSlider.value = speedUp
+speedUpSlider.onchange = () => {
+    speedUp = speedUpSlider.value
+}
+
 /*let minorSpecies = new Species();
 for (let i = 0; i < 100; i++) {
     animals.push(new Animal(Math.random()*canvas.width,Math.random()*canvas.height,minorSpecies));
@@ -73,12 +80,12 @@ function mainLoop(){
     graph.drawAnimalStats(bestAnimal);
 
     animals.forEach((animal) => {
-        animal.calculateMovement(animals, food);  
-        animal.updateAnimal();
         if(showLines || animal == bestAnimal)
             animal.drawAnimal(ctx, animals, food);
         else
             animal.drawAnimal(ctx);
+        animal.calculateMovement(animals, food);  
+        animal.updateAnimal(speedUp);
 
 
         if(animal.canEat){
@@ -151,11 +158,13 @@ function mainLoop(){
     window.requestAnimationFrame(mainLoop);
 }
 
-setInterval(() => {
+function addFood(){
     food.push(new Food(Math.random()*canvas.width, Math.random()*canvas.height));
-}, 100)
+    setTimeout(addFood, 100/speedUp)
+}
+setTimeout(addFood, 100/speedUp)
 
-setInterval(() => {
+function addNewSpecies(){
     let newspecies = new Species(parseInt(Math.random()*6));
     let newspeciesoffspringcount = newspecies.offspringCount;
     newspecies.offspringCount = 20;
@@ -192,7 +201,10 @@ setInterval(() => {
     newspecies.offspringCount = newspeciesoffspringcount;
         
     animalAdded(animals);
-}, 20000)
+    setTimeout(addNewSpecies, 20000/speedUp);
+}
+
+setTimeout(addNewSpecies, 20000/speedUp);
 
 function addRandomAnimals(count, species){
     for (let i = 0; i < count; i++) {
