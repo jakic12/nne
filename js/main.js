@@ -13,6 +13,16 @@ let graph = new AnimalGraph('animalGraph', animals, e => {
     animalAdded = e;
 });
 
+var showLines = false;
+document.getElementById("drawLinesToggle").onclick = () => {
+    showLines = !showLines
+}
+
+var showOldest = false;
+document.getElementById("showOldestToggle").onclick = () => {
+    showOldest = !showOldest
+}
+
 /*let minorSpecies = new Species();
 for (let i = 0; i < 100; i++) {
     animals.push(new Animal(Math.random()*canvas.width,Math.random()*canvas.height,minorSpecies));
@@ -41,6 +51,7 @@ ctx.stroke()*/
 
 function mainLoop(){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    animalAdded(animals);
 
     let eatenAnimals = [];
     let eatenFood = [];
@@ -49,10 +60,26 @@ function mainLoop(){
         f.draw(ctx);
     });
 
+    let animalsCopy = [...animals];
+        animalsCopy.sort((a,b) => {
+            if(!showOldest){
+                return b.getValue() - a.getValue()
+            }else{
+                return b.generation - a.generation
+            }
+        }).filter((a) => !a.isFood)
+    let bestAnimal = animalsCopy[0];
+
+    graph.drawAnimalStats(bestAnimal);
+
     animals.forEach((animal) => {
         animal.calculateMovement(animals, food);  
         animal.updateAnimal();
-        animal.drawAnimal(ctx, animals, food);
+        if(showLines || animal == bestAnimal)
+            animal.drawAnimal(ctx, animals, food);
+        else
+            animal.drawAnimal(ctx);
+
 
         if(animal.canEat){
             if(animals.includes(animal.canEat)){
@@ -71,7 +98,7 @@ function mainLoop(){
             else
                 animals.push(offsprings);
             
-            animalAdded(animals);
+            
         }
 
         if(animal.x > canvas.width + animal.size){
@@ -106,6 +133,16 @@ function mainLoop(){
         animal.y > -animal.size*/
     )
 
+    if(animals.length > 200){
+        let animalsCopy = [...animals];
+        animalsCopy.sort((a,b) => 
+            a.getValue() - b.getValue()
+        )
+        for(let i = 0; i < 100; i++){
+            animalsCopy[i].isFood = true;
+        }
+    }
+
     food = food.filter(f =>
         !eatenFood.includes(f) 
     )
@@ -119,11 +156,48 @@ setInterval(() => {
 }, 100)
 
 setInterval(() => {
-    let newspecies = new Species(Math.random()*6);
-    for (let i = 0; i < 20; i++) {
-        animals.push(new Animal(Math.random()*canvas.width,Math.random()*canvas.height,newspecies));
+    let newspecies = new Species(parseInt(Math.random()*6));
+    let newspeciesoffspringcount = newspecies.offspringCount;
+    newspecies.offspringCount = 20;
+    if(animals.length < 2)
+        addRandomAnimals(20,newspecies);
+    else{
+        let animalsCopy = [...animals];
+        animalsCopy.sort((a,b) => 
+            b.getValue() - a.getValue()
+        )
+        let mate1 = animalsCopy[0];
+        if(animalsCopy[1].species.NNshape == mate1.species.NNshape){
+            let offsprings = mate1.mate(animalsCopy[1], newspecies, {x:canvas.width, y:canvas.height})
+            console.log(`added ${offsprings.length} animals`)
+            animals = [...animals, ...offsprings]
+        }else{
+            let mate2;
+            for(let i = 2; i < animalsCopy.length; i++){
+                if(animalsCopy[i].species.NNshape == mate1.species.NNshape){
+                    mate2 = animalsCopy[i];
+                    break;
+                }
+            }
+
+            if(!mate2){
+                addRandomAnimals(20,newspecies);
+            }else{ 
+                let offsprings = mate1.mate(mate2, newspecies, {x:canvas.width, y:canvas.height})
+                animals = [...animals, ...offsprings]
+            }
+        }
     }
+
+    newspecies.offspringCount = newspeciesoffspringcount;
+        
     animalAdded(animals);
 }, 20000)
+
+function addRandomAnimals(count, species){
+    for (let i = 0; i < count; i++) {
+        animals.push(new Animal(Math.random()*canvas.width,Math.random()*canvas.height,species));
+    }
+}
 
 window.requestAnimationFrame(mainLoop);

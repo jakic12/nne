@@ -28,19 +28,23 @@ class Animal {
         this.foodInventory = 0
         this.canEat = null;
         this.canMate = null;
-
         this.isFood = false;
         this.lifespan = 0;
+        this.mateCount = 0;
+        this.rotting = 0;
+        this.generation = 0;
 
-        this.hungerCoefficient = Math.random()*0.05+0.1
-        this.hungerDieCoefficient = Math.random()*0.05+0.1
+        this.hungerCoefficient = Math.random()*0.05+0.3
+        this.hungerDieCoefficient = Math.random()*0.05+0.3
         this.lifespanCoefficient = Math.random()*0.02+0.03
+        this.rotCoefficient = 0.1;
 
         if(neuralNet)
             this.neuralNetwork = neuralNet
         else
             this.neuralNetwork = new NeuralNetwork(species.NNshape);
         species.animalCount++;
+        
     }
 
     calculateMovement(animals, food){
@@ -110,6 +114,10 @@ class Animal {
                 this.hunger = 0;
             }else if(this.hunger >= 100){
                 this.health -= this.hungerDieCoefficient;
+                if(this.health <= 0){
+                    this.isFood = true;
+                    this.health = 1;
+                }
             }else{
                 this.hunger += this.hungerCoefficient;
             }
@@ -123,6 +131,10 @@ class Animal {
                 this.species.animalCount--;
                 this.isFood = true;
             }
+        }else{
+            this.rotting += this.rotCoefficient;
+            if(this.rotting >= 100)
+                this.health = 0;
         }
     }
 
@@ -205,6 +217,7 @@ class Animal {
     }
     
     drawAnimal(ctx, animals, food){
+        ctx.strokeStyle = "black";
         ctx.beginPath()
         ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI)
         ctx.stroke()
@@ -224,34 +237,34 @@ class Animal {
             if(!params)
                 return
             if(params.food){
-                ctx.strokeStyle = "green";
                 ctx.beginPath()
                 ctx.moveTo(this.x, this.y)  
                 ctx.lineTo(params.food.x, params.food.y)
+                ctx.strokeStyle = "green";
                 ctx.stroke()
             }
         
             if(params.predator){
-                ctx.strokeStyle = "red";
                 ctx.beginPath()
                 ctx.moveTo(this.x, this.y)  
                 ctx.lineTo(params.predator.x, params.predator.y)
+                ctx.strokeStyle = "red";
                 ctx.stroke()
             }
 
             if(params.lover){
-                ctx.strokeStyle = "pink";
                 ctx.beginPath()
                 ctx.moveTo(this.x, this.y)  
                 ctx.lineTo(params.lover.x, params.lover.y)
+                ctx.strokeStyle = "pink";
                 ctx.stroke()
             }
 
             if(params.friend){
-                ctx.strokeStyle = "blue";
                 ctx.beginPath()
                 ctx.moveTo(this.x, this.y)  
                 ctx.lineTo(params.friend.x, params.friend.y)
+                ctx.strokeStyle = "blue";
                 ctx.stroke()
             }
         }
@@ -269,26 +282,43 @@ class Animal {
         }
     }
 
-    mate(animal){
+    /**
+     * 
+     * @param {Animal} animal 
+     * @param {Species} species 
+     * @param {Object} randomBorder maximum numbers of positions example {x:20, y:10}
+     */
+    mate(animal, species, randomBorder){
+        if(!species)
+            this.mateCount++;
+        
         if(!this.food && !animal.food){
             this.reproductiveUrge = 0;
             animal.reproductiveUrge = 0;
             
             let offsprings = [];
-            for(let i = 0; i < this.species.offspringCount; i++){
-            
+            for(let i = 0; i < (species? species.offspringCount : this.species.offspringCount); i++){
                 let offspring = new Animal(
-                    animal.x,
-                    animal.y,
-                    animal.species,
+                    randomBorder? Math.random()*randomBorder.x : animal.x,
+                    randomBorder? Math.random()*randomBorder.y : animal.y,
+                    species? species : animal.species,
                     this.neuralNetwork.crossOver(animal.neuralNetwork)
                 );
+                offspring.generation = this.generation + 1;
                 offspring.hungerCoefficient = (Math.random() >= 0.5)? this.hungerCoefficient : animal.hungerCoefficient;
                 offspring.hungerDieCoefficient = (Math.random() >= 0.5)? this.hungerDieCoefficient : animal.hungerDieCoefficient;
+                offspring.lifespanCoefficient = (Math.random() >= 0.5)? this.lifespanCoefficient : animal.lifespanCoefficient;
                 offsprings.push(offspring);
             }
             return offsprings;
         }
+    }
+
+    /**
+     * gets how good the animal is
+     */
+    getValue(){
+        return this.health + this.foodInventory*100 + this.mateCount*1000 + this.speed - this.lifespanCoefficient - this.hungerCoefficient - this.hungerDieCoefficient;
     }
 
     variate(value, amount = 0.2){
