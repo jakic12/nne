@@ -144,7 +144,7 @@ class Animal {
         for (const animal of animals) {
             let distance = this.calcDistance(animal);
             let direction = this.calcDirection(animal);
-            if(animal.species.fc_eval > this.species.fc_eval){
+            if(animal.species.fc_eval > this.species.fc_eval && !animal.isFood){
                 //if the animal is a predator
                 if(params.closest_predator_distance > distance){
                     params.closest_predator_distance = distance;
@@ -158,7 +158,7 @@ class Animal {
                     params.food_direction = direction;
                     params.food = animal;
                 }
-            }else if(animal.species === this.species){
+            }else if(animal.species === this.species && !animal.isFood){
                 //if the animal is a potential lover
                 if(params.closest_lover_distance > distance){
                     params.closest_lover_distance = distance;
@@ -167,7 +167,7 @@ class Animal {
                 }
             }else{
                 //if the animal is a friend
-                if(params.closest_friend_distance > distance){
+                if(params.closest_friend_distance > distance && !animal.isFood){
                     params.closest_friend_distance = distance;
                     params.friend_direction = direction;
                     params.friend = animal;
@@ -196,7 +196,7 @@ class Animal {
         return Math.atan2((animal.y-this.y), (animal.x-this.x));
     }
     
-    drawAnimal(ctx){
+    drawAnimal(ctx, animals, food){
         ctx.beginPath()
         ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI)
         ctx.stroke()
@@ -210,8 +210,40 @@ class Animal {
 
         ctx.font = "10px Arial";
         ctx.fillText(`h:${parseInt(this.health)} f:${parseInt(this.foodInventory)} hu:${parseInt(this.hunger)} ru ${parseInt(this.reproductiveUrge)}`, this.x, this.y - this.size - 20);
-    }
 
+        let params = this.getInputParameters(animals, food);
+        if(params.food){
+            ctx.strokeStyle = "green";
+            ctx.beginPath()
+            ctx.moveTo(this.x, this.y)  
+            ctx.lineTo(params.food.x, params.food.y)
+            ctx.stroke()
+        }
+    
+        if(params.predator){
+            ctx.strokeStyle = "red";
+            ctx.beginPath()
+            ctx.moveTo(this.x, this.y)  
+            ctx.lineTo(params.predator.x, params.predator.y)
+            ctx.stroke()
+        }
+        
+        if(params.lover){
+            ctx.strokeStyle = "pink";
+            ctx.beginPath()
+            ctx.moveTo(this.x, this.y)  
+            ctx.lineTo(params.lover.x, params.lover.y)
+            ctx.stroke()
+        }
+        
+        if(params.friend){
+            ctx.strokeStyle = "blue";
+            ctx.beginPath()
+            ctx.moveTo(this.x, this.y)  
+            ctx.lineTo(params.friend.x, params.friend.y)
+            ctx.stroke()
+        }
+    }
     calculateCanEat(params){
         if(!this.food)
         if(params.closest_food_distance < this.size)

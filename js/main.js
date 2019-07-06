@@ -46,7 +46,7 @@ function mainLoop(){
     animals.forEach((animal) => {
         animal.calculateMovement(animals, food);  
         animal.updateAnimal();
-        animal.drawAnimal(ctx);
+        animal.drawAnimal(ctx, animals, food);
 
         if(animal.canEat){
             if(animals.includes(animal.canEat)){
