@@ -40,9 +40,13 @@ class Animal {
             this.neuralNetwork = neuralNet
         else
             this.neuralNetwork = new NeuralNetwork(species.NNshape);
+        species.animalCount++;
     }
 
     calculateMovement(animals, food){
+        if(this.isFood)
+            return;
+
         animals = animals.filter(el => el != this);
 
         let params = this.getInputParameters(animals, food);
@@ -116,76 +120,80 @@ class Animal {
             if(this.lifespan < 100)
                 this.lifespan += this.lifespanCoefficient;
             else{
+                this.species.animalCount--;
                 this.isFood = true;
             }
         }
     }
 
     getInputParameters(animals, food){
-        animals = animals.filter(el => el != this);
-        let params = {
-            closest_predator_distance:Infinity,
-            predator_direction:NaN,
-            predator:null,
-            closest_friend_distance:Infinity,
-            friend_direction:NaN,
-            friend:null,
-            closest_food_distance:Infinity,
-            food_direction:NaN,
-            food:null,
-            closest_lover_distance:Infinity,
-            lover_direction:NaN,
-            lover:null,
-            hunger:this.hunger,
-            reproductiveUrge:this.reproductiveUrge,
-            ammount_of_food:this.foodInventory
-        };
+        if(!this.isFood){
+            animals = animals.filter(el => el != this);
+            let params = {
+                closest_predator_distance:Infinity,
+                predator_direction:NaN,
+                predator:null,
+                closest_friend_distance:Infinity,
+                friend_direction:NaN,
+                friend:null,
+                closest_food_distance:Infinity,
+                food_direction:NaN,
+                food:null,
+                closest_lover_distance:Infinity,
+                lover_direction:NaN,
+                lover:null,
+                hunger:this.hunger,
+                reproductiveUrge:this.reproductiveUrge,
+                ammount_of_food:this.foodInventory
+            };
 
-        for (const animal of animals) {
-            let distance = this.calcDistance(animal);
-            let direction = this.calcDirection(animal);
-            if(animal.species.fc_eval > this.species.fc_eval && !animal.isFood){
-                //if the animal is a predator
-                if(params.closest_predator_distance > distance){
-                    params.closest_predator_distance = distance;
-                    params.predator_direction = direction;
-                    params.predator = animal;
+            for (const animal of animals) {
+                let distance = this.calcDistance(animal);
+                let direction = this.calcDirection(animal);
+                if(animal.species.fc_eval > this.species.fc_eval && !animal.isFood){
+                    //if the animal is a predator
+                    if(params.closest_predator_distance > distance){
+                        params.closest_predator_distance = distance;
+                        params.predator_direction = direction;
+                        params.predator = animal;
+                    }
+                }else if((animal.species.fc_eval < this.species.fc_eval || animal.isFood) && this.species.carnivore){
+                    //if the animal is food
+                    if(params.closest_food_distance > distance){
+                        params.closest_food_distance = distance;
+                        params.food_direction = direction;
+                        params.food = animal;
+                    }
+                }else if(animal.species === this.species && !animal.isFood){
+                    //if the animal is a potential lover
+                    if(params.closest_lover_distance > distance){
+                        params.closest_lover_distance = distance;
+                        params.lover_direction = direction;
+                        params.lover = animal;
+                    }
+                }else{
+                    //if the animal is a friend
+                    if(params.closest_friend_distance > distance && !animal.isFood){
+                        params.closest_friend_distance = distance;
+                        params.friend_direction = direction;
+                        params.friend = animal;
+                    }
                 }
-            }else if((animal.species.fc_eval < this.species.fc_eval || animal.isFood) && this.species.carnivore){
-                //if the animal is food
+            }
+        
+
+            for(const f of food){
+                let distance = this.calcDistance(f);
+                let direction = this.calcDirection(f);
+
                 if(params.closest_food_distance > distance){
                     params.closest_food_distance = distance;
                     params.food_direction = direction;
-                    params.food = animal;
-                }
-            }else if(animal.species === this.species && !animal.isFood){
-                //if the animal is a potential lover
-                if(params.closest_lover_distance > distance){
-                    params.closest_lover_distance = distance;
-                    params.lover_direction = direction;
-                    params.lover = animal;
-                }
-            }else{
-                //if the animal is a friend
-                if(params.closest_friend_distance > distance && !animal.isFood){
-                    params.closest_friend_distance = distance;
-                    params.friend_direction = direction;
-                    params.friend = animal;
+                    params.food = f;
                 }
             }
+            return params;
         }
-
-        for(const f of food){
-            let distance = this.calcDistance(f);
-            let direction = this.calcDirection(f);
-
-            if(params.closest_food_distance > distance){
-                params.closest_food_distance = distance;
-                params.food_direction = direction;
-                params.food = f;
-            }
-        }
-        return params;
     }
 
     calcDistance(animal){
@@ -211,42 +219,46 @@ class Animal {
         ctx.font = "10px Arial";
         ctx.fillText(`h:${parseInt(this.health)} f:${parseInt(this.foodInventory)} hu:${parseInt(this.hunger)} ru ${parseInt(this.reproductiveUrge)}`, this.x, this.y - this.size - 20);
 
-        let params = this.getInputParameters(animals, food);
-        if(params.food){
-            ctx.strokeStyle = "green";
-            ctx.beginPath()
-            ctx.moveTo(this.x, this.y)  
-            ctx.lineTo(params.food.x, params.food.y)
-            ctx.stroke()
-        }
-    
-        if(params.predator){
-            ctx.strokeStyle = "red";
-            ctx.beginPath()
-            ctx.moveTo(this.x, this.y)  
-            ctx.lineTo(params.predator.x, params.predator.y)
-            ctx.stroke()
-        }
+        if(animals && food){
+            let params = this.getInputParameters(animals, food);
+            if(!params)
+                return
+            if(params.food){
+                ctx.strokeStyle = "green";
+                ctx.beginPath()
+                ctx.moveTo(this.x, this.y)  
+                ctx.lineTo(params.food.x, params.food.y)
+                ctx.stroke()
+            }
         
-        if(params.lover){
-            ctx.strokeStyle = "pink";
-            ctx.beginPath()
-            ctx.moveTo(this.x, this.y)  
-            ctx.lineTo(params.lover.x, params.lover.y)
-            ctx.stroke()
-        }
-        
-        if(params.friend){
-            ctx.strokeStyle = "blue";
-            ctx.beginPath()
-            ctx.moveTo(this.x, this.y)  
-            ctx.lineTo(params.friend.x, params.friend.y)
-            ctx.stroke()
+            if(params.predator){
+                ctx.strokeStyle = "red";
+                ctx.beginPath()
+                ctx.moveTo(this.x, this.y)  
+                ctx.lineTo(params.predator.x, params.predator.y)
+                ctx.stroke()
+            }
+
+            if(params.lover){
+                ctx.strokeStyle = "pink";
+                ctx.beginPath()
+                ctx.moveTo(this.x, this.y)  
+                ctx.lineTo(params.lover.x, params.lover.y)
+                ctx.stroke()
+            }
+
+            if(params.friend){
+                ctx.strokeStyle = "blue";
+                ctx.beginPath()
+                ctx.moveTo(this.x, this.y)  
+                ctx.lineTo(params.friend.x, params.friend.y)
+                ctx.stroke()
+            }
         }
     }
     calculateCanEat(params){
         if(!this.food)
-        if(params.closest_food_distance < this.size)
+        if(params.closest_food_distance < this.size + params.food.size)
             return params.food;
     }
 

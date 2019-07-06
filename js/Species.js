@@ -11,7 +11,19 @@ class Species{
         this.speed = speed;
         this.NNshape = NNshape;
         this.offspringCount = parseInt(10/fc_eval);
-    }    
+        this.ac = 0;
+    }
+    
+    set animalCount(v){
+        this.ac=v;
+        if(this.onanimalcountchange){
+            this.onanimalcountchange(v);
+        }
+    }
+
+    get animalCount(){
+        return this.ac;
+    }
 }
 
 function getRandomColor(){

@@ -6,9 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>evolution</title>
 </head>
-<body style="height:100%; margin:0; overflow: hidden;" onresize = "() => {var canvas = document.getElementById('mainCanvas'); canvas.width = document.body.clientWidth; canvas.height = document.body.clientHeight;}">
+<body style="height:100%; margin:0; overflow: hidden;">
     <noscript>enable javscript</noscript>
-    <canvas id="mainCanvas"></canvas>
+    <div style="position:absolute; left:0;top:0;width:310px; height:100%;border-top-right-radius: 10px; border-bottom-right-radius: 10px; background: #222; z-index:200">
+        <canvas id="animalGraph" width="300" height="200"></canvas>
+    </div>
+    <canvas style="position:absolute; left:300px; top:0;z-index:100" id="mainCanvas"></canvas>
     <script type="module" src="js/main.js"></script>
 </body>
 </html>
