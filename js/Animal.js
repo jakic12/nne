@@ -38,10 +38,10 @@ class Animal {
             this.neuralNetwork = new NeuralNetwork(species.NNshape);
     }
 
-    calculateMovement(animals){
+    calculateMovement(animals, food){
         animals = animals.filter(el => el != this);
 
-        let params = this.getInputParameters(animals);
+        let params = this.getInputParameters(animals, food);
 
         // put here for optimisation reasons
         this.canEat = this.calculateCanEat(params); 
@@ -75,6 +75,17 @@ class Animal {
             }
         }
 
+        nnInputs[0] /= 500;
+        nnInputs[1] /= Math.PI*2;
+        nnInputs[2] /= 500;
+        nnInputs[3] /= Math.PI*2;
+        nnInputs[4] /= 500;
+        nnInputs[5] /= Math.PI*2;
+        nnInputs[6] /= 500;
+        nnInputs[7] /= Math.PI*2;
+        nnInputs[8] /= 100;
+        nnInputs[9] /= 100;
+
         let result = this.neuralNetwork.forward(nnInputs);
         this.forward = result[0];
         this.strafe = result[1];
@@ -95,10 +106,10 @@ class Animal {
         }
 
         if(this.reproductiveUrge < 100)
-            this.reproductiveUrge += 0.2;
+            this.reproductiveUrge += 0.1;
     }
 
-    getInputParameters(animals){
+    getInputParameters(animals, food){
         animals = animals.filter(el => el != this);
         let params = {
             closest_predator_distance:Infinity,
@@ -151,6 +162,17 @@ class Animal {
                 }
             }
         }
+
+        for(const f of food){
+            let distance = this.calcDistance(f);
+            let direction = this.calcDirection(f);
+
+            if(params.closest_food_distance > distance){
+                params.closest_food_distance = distance;
+                params.food_direction = direction;
+                params.food = f;
+            }
+        }
         return params;
         console.log(params);
     }
@@ -176,7 +198,7 @@ class Animal {
         ctx.stroke()
 
         ctx.font = "10px Arial";
-        ctx.fillText(`h:${parseInt(this.health)} f:${parseInt(this.foodInventory)} hu:${parseInt(this.hunger)} ru ${parseInt(this.reproductiveUrge)}`, this.x, this.y - this.size - 50);
+        ctx.fillText(`h:${parseInt(this.health)} f:${parseInt(this.foodInventory)} hu:${parseInt(this.hunger)} ru ${parseInt(this.reproductiveUrge)}`, this.x, this.y - this.size - 20);
     }
 
     calculateCanEat(params){
