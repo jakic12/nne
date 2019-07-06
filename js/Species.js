@@ -10,7 +10,7 @@ class Species{
         this.color = color;
         this.speed = speed;
         this.NNshape = NNshape;
-        this.offspringCount = 3;
+        this.offspringCount = parseInt(10/fc_eval);
     }    
 }
 

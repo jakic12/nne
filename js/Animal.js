@@ -29,8 +29,12 @@ class Animal {
         this.canEat = null;
         this.canMate = null;
 
+        this.isFood = false;
+        this.lifespan = 0;
+
         this.hungerCoefficient = Math.random()*0.05+0.1
         this.hungerDieCoefficient = Math.random()*0.05+0.1
+        this.lifespanCoefficient = Math.random()*0.02+0.03
 
         if(neuralNet)
             this.neuralNetwork = neuralNet
@@ -93,20 +97,28 @@ class Animal {
     }
 
     updateAnimal(){
-        this.a = this.turn*2*Math.PI;
-        this.x += Math.cos(this.a)*this.forward + Math.cos(this.a+Math.PI/2)*this.strafe
-        this.y += Math.sin(this.a)*this.forward + Math.sin(this.a+Math.PI/2)*this.strafe
-        if(this.hunger >= 100 && this.foodInventory > 0){
-            this.foodInventory--;
-            this.hunger = 0;
-        }else if(this.hunger >= 100){
-            this.health -= this.hungerDieCoefficient;
-        }else{
-            this.hunger += this.hungerCoefficient;
-        }
+        if(!this.isFood){
+            this.a = this.turn*2*Math.PI;
+            this.x += Math.cos(this.a)*this.forward + Math.cos(this.a+Math.PI/2)*this.strafe
+            this.y += Math.sin(this.a)*this.forward + Math.sin(this.a+Math.PI/2)*this.strafe
+            if(this.hunger >= 100 && this.foodInventory > 0){
+                this.foodInventory--;
+                this.hunger = 0;
+            }else if(this.hunger >= 100){
+                this.health -= this.hungerDieCoefficient;
+            }else{
+                this.hunger += this.hungerCoefficient;
+            }
 
-        if(this.reproductiveUrge < 100)
-            this.reproductiveUrge += 0.1;
+            if(this.reproductiveUrge < 100)
+                this.reproductiveUrge += 0.1;
+
+            if(this.lifespan < 100)
+                this.lifespan += this.lifespanCoefficient;
+            else{
+                this.isFood = true;
+            }
+        }
     }
 
     getInputParameters(animals, food){
@@ -139,7 +151,7 @@ class Animal {
                     params.predator_direction = direction;
                     params.predator = animal;
                 }
-            }else if(animal.species.fc_eval < this.species.fc_eval && this.species.carnivore){
+            }else if((animal.species.fc_eval < this.species.fc_eval || animal.isFood) && this.species.carnivore){
                 //if the animal is food
                 if(params.closest_food_distance > distance){
                     params.closest_food_distance = distance;
@@ -174,7 +186,6 @@ class Animal {
             }
         }
         return params;
-        console.log(params);
     }
 
     calcDistance(animal){
@@ -189,7 +200,7 @@ class Animal {
         ctx.beginPath()
         ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI)
         ctx.stroke()
-        ctx.fillStyle = this.species.color;
+        ctx.fillStyle = this.isFood? "#555" : this.species.color;
         ctx.fill();
 
         ctx.beginPath()

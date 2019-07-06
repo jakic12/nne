@@ -102,6 +102,6 @@ function mainLoop(){
 
 setInterval(() => {
     food.push(new Food(Math.random()*canvas.width, Math.random()*canvas.height));
-}, 500)
+}, 100)
 
 window.requestAnimationFrame(mainLoop);
