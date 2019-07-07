@@ -34,9 +34,9 @@ class Animal {
         this.rotting = 0;
         this.generation = 0;
 
-        this.hungerCoefficient = Math.random()*0.05+0.3
-        this.hungerDieCoefficient = Math.random()*0.05+0.3
-        this.lifespanCoefficient = Math.random()*0.02+0.03
+        this.hungerCoefficient = Math.random()*0.05+0.2
+        this.hungerDieCoefficient = Math.random()*0.05+0.1
+        this.lifespanCoefficient = Math.random()*0.02+0.001
         this.ruCoefficient = Math.random()*0.01 + 0.05
         this.rotCoefficient = 0.1;
 
@@ -45,7 +45,6 @@ class Animal {
         else
             this.neuralNetwork = new NeuralNetwork(species.NNshape);
         species.animalCount++;
-        
     }
 
     calculateMovement(animals, food){
@@ -155,7 +154,7 @@ class Animal {
                 closest_lover_distance:Infinity,
                 lover_direction:NaN,
                 lover:null,
-                hunger:this.hunger,
+                hunger:this.hunger*this.foodInventory,
                 reproductiveUrge:this.reproductiveUrge,
                 ammount_of_food:this.foodInventory
             };
@@ -320,7 +319,7 @@ class Animal {
      * gets how good the animal is
      */
     getValue(){
-        return this.health + this.foodInventory*100 + this.mateCount*1000 + this.speed - this.lifespanCoefficient - this.hungerCoefficient - this.hungerDieCoefficient;
+        return this.health + this.foodInventory*100 + this.mateCount*10000 + this.speed - this.lifespanCoefficient - this.hungerCoefficient - this.hungerDieCoefficient;
     }
 
     variate(value, amount = 0.2){

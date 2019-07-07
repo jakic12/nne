@@ -56,7 +56,15 @@ ctx.moveTo(animals[0].x, animals[0].y)
 ctx.lineTo(animals[0].x + Math.cos(params.friend_direction)*(params.closest_friend_distance), animals[0].y + Math.sin(params.friend_direction)*(params.closest_friend_distance))
 ctx.stroke()*/
 
+var best2animals = [];
+
 function mainLoop(){
+    if(animals.length == 0){
+        addRandomAnimals(20,new Species(parseInt(Math.random()*6)));
+        addRandomAnimals(20,new Species(parseInt(Math.random()*6)));
+        addRandomAnimals(20,new Species(parseInt(Math.random()*6)));
+        addRandomAnimals(20,new Species(parseInt(Math.random()*6)));
+    }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     animalAdded(animals);
 
@@ -67,15 +75,36 @@ function mainLoop(){
         f.draw(ctx);
     });
 
-    let animalsCopy = [...animals];
-        animalsCopy.sort((a,b) => {
-            if(!showOldest){
-                return b.getValue() - a.getValue()
-            }else{
-                return b.generation - a.generation
-            }
-        }).filter((a) => !a.isFood)
+    let animalsCopy = [...animals].filter((a) => !a.isFood);
+    animalsCopy.sort((a,b) => {
+        if(!showOldest){
+            return b.getValue() - a.getValue()
+        }else{
+            return b.generation - a.generation
+        }
+    })
     let bestAnimal = animalsCopy[0];
+    if(showOldest && bestAnimal){
+        document.getElementById("genNumber").innerHTML = bestAnimal.generation;
+    }else{
+        if([...animals].filter((a) => !a.isFood).length > 0)
+            document.getElementById("genNumber").innerHTML = [...animals].filter((a) => !a.isFood).sort((a,b) => b.generation - a.generation)[0].generation;
+    }
+    if(best2animals.length == 0){
+        best2animals[0] = animalsCopy[0]
+        best2animals[1] = animalsCopy[1]
+    }else{
+        if(animalsCopy[0] && best2animals[0].getValue() < animalsCopy[0].getValue()){
+            best2animals[0] = animalsCopy[0]
+        }else if(animalsCopy[1] && best2animals[1].getValue() < animalsCopy[0].getValue()){
+            best2animals[1] = animalsCopy[0]
+        }
+        
+        if(animalsCopy[1] && best2animals[1].getValue() < animalsCopy[1].getValue()){
+            best2animals[1] = animalsCopy[1]
+        }
+        best2animals.sort((a,b) => b.getValue() - a.getValue());
+    }
 
     graph.drawAnimalStats(bestAnimal);
 
@@ -160,18 +189,24 @@ function mainLoop(){
 
 function addFood(){
     food.push(new Food(Math.random()*canvas.width, Math.random()*canvas.height));
-    setTimeout(addFood, 100/speedUp)
+    setTimeout(addFood, 4000/speedUp)
 }
-setTimeout(addFood, 100/speedUp)
+setTimeout(addFood, 4000/speedUp)
 
 function addNewSpecies(){
     let newspecies = new Species(parseInt(Math.random()*6));
     let newspeciesoffspringcount = newspecies.offspringCount;
     newspecies.offspringCount = 20;
-    if(animals.length < 2)
-        addRandomAnimals(20,newspecies);
+    if(animals.filter(a => !a.isFood).length < 2)
+        if(best2animals.length < 2 || best2animals[0].generation < 300)
+            addRandomAnimals(20,newspecies);
+        else{
+            let offsprings = best2animals[0].mate(best2animals[1], newspecies, {x:canvas.width, y:canvas.height})
+            animals = [...animals, ...offsprings]
+        }
+
     else{
-        let animalsCopy = [...animals];
+        let animalsCopy = [...animals].filter(a => !a.isFood);
         animalsCopy.sort((a,b) => 
             b.getValue() - a.getValue()
         )
@@ -190,7 +225,12 @@ function addNewSpecies(){
             }
 
             if(!mate2){
-                addRandomAnimals(20,newspecies);
+                if(best2animals.length < 2 || best2animals[0].generation < 300)
+                    addRandomAnimals(20,newspecies);
+                else{
+                    let offsprings = best2animals[0].mate(best2animals[1], newspecies, {x:canvas.width, y:canvas.height})
+                    animals = [...animals, ...offsprings]
+                }
             }else{ 
                 let offsprings = mate1.mate(mate2, newspecies, {x:canvas.width, y:canvas.height})
                 animals = [...animals, ...offsprings]
@@ -201,10 +241,10 @@ function addNewSpecies(){
     newspecies.offspringCount = newspeciesoffspringcount;
         
     animalAdded(animals);
-    setTimeout(addNewSpecies, 20000/speedUp);
+    setTimeout(addNewSpecies, 50000/speedUp);
 }
 
-setTimeout(addNewSpecies, 20000/speedUp);
+setTimeout(addNewSpecies, 50000/speedUp);
 
 function addRandomAnimals(count, species){
     for (let i = 0; i < count; i++) {
