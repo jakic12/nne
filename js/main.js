@@ -189,9 +189,9 @@ function mainLoop(){
 
 function addFood(){
     food.push(new Food(Math.random()*canvas.width, Math.random()*canvas.height));
-    setTimeout(addFood, 4000/speedUp)
+    setTimeout(addFood, 100/speedUp)
 }
-setTimeout(addFood, 4000/speedUp)
+setTimeout(addFood, 100/speedUp)
 
 function addNewSpecies(){
     let newspecies = new Species(parseInt(Math.random()*6));
